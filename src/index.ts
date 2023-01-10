@@ -20,8 +20,26 @@ app.get("/games", async (request, response)=> {
         "datas": games.flatMap( game => ({...game,"link": `/games/${game.id}`}) )
     });
 });
-app.get("/games/:id", (request, response)=> {
+
+app.get("/games/:id", async (request, response)=> {
+    const game = await prisma.game.findFirst({
+        where: {
+            id: request.params.id
+        }
+    });
+
+    if(game)
+        return response.status(200).send({
+            "content-type": "text/json",
+            "status": 200,
+            "game": {...game, "link": `/games/${game.id}`}
+        });
     
+    response.status(404).send({
+        "content-type": "text/json",
+        "status": 404,
+        "error_message": "Não foi encontrado nenhum jogo com esta identificação"
+    });
 });
 
 // Comentários
