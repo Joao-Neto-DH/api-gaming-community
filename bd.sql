@@ -7,4 +7,6 @@ use gamingcommunity;
 -- drop table user;
 -- drop table game;
 
-desc _prisma_migrations
+-- desc _prisma_migrations
+
+desc user;
