@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  name      String
+  gender    String
+  email     String
+  password  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+  comments  Comment[]
+}
+
+model Game {
+  id                String          @id @default(uuid())
+  title             String          @unique
+  description       String
+  ageClassification String
+  yearSell          Int
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @default(now())
+  comments          Comment[]
+  screenshoots      ScreenShoot[]
+  genders           GenderGame[]
+  requirements      Requirement[]
+  plataforms        PlataformGame[]
+}
+
+model GenderGame {
+  id        String   @id @default(uuid())
+  type      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  Game      Game?    @relation(fields: [gameId], references: [id])
+  gameId    String?
+}
+
+model PlataformGame {
+  id        String   @id @default(uuid())
+  device    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  Game      Game?    @relation(fields: [gameId], references: [id])
+  gameId    String?
+}
+
+model ScreenShoot {
+  id         String   @id @default(uuid())
+  image_path String
+  cover      Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+  Game       Game?    @relation(fields: [gameId], references: [id])
+  gameId     String?
+}
+
+model Requirement {
+  id        String   @id @default(uuid())
+  resource  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  Game      Game?    @relation(fields: [gameId], references: [id])
+  gameId    String?
+}
+
+model Comment {
+  id          String   @id @default(uuid())
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  User        User?    @relation(fields: [userId], references: [id])
+  userId      String?
+  Game        Game?    @relation(fields: [gameId], references: [id])
+  gameId      String?
+}
