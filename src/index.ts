@@ -2,7 +2,7 @@ import Express from "express";
 import { PrismaClient } from "@prisma/client";
 import { urlencoded } from "body-parser"; 
 import { config } from "dotenv";
-import GameRouters from "./routes/Games";
+import GameRouters from "./routes/GameRouters";
 
 const app = Express();
 app.use(urlencoded({extended: false, type: "text/json"}));
