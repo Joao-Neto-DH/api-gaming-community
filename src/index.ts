@@ -1,11 +1,11 @@
 import Express from "express";
 import { PrismaClient } from "@prisma/client";
-import { urlencoded } from "body-parser"; 
+import { json, urlencoded } from "body-parser"; 
 import { config } from "dotenv";
 import GameRouters from "./routes/GameRouters";
 
 const app = Express();
-app.use(urlencoded({extended: false, type: "text/json"}));
+app.use(json({type: "application/json"}));
 const dotenv = config({ path: "./.env" });
 if(dotenv.error) console.error(dotenv.error?.stack);
 

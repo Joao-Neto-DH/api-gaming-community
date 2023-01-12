@@ -1,6 +1,12 @@
 import { Router } from "express";
 import { Game, PrismaClient } from "@prisma/client";
 import { isEmpty } from "../utils/strings";
+import isNull from "../utils/isNull";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+
+type body = Game & {
+    type: string[]
+}
 
 function GameRouters(){
     const route = Router({ caseSensitive: false });
@@ -8,67 +14,75 @@ function GameRouters(){
 
     // Cria um jogo
     route.post("/", async (request, response)=>{
-        console.log(request.headers)
-        const game = request.body;
-        if(isValidGame(game))
-            return response.status(201).json({
-                "status": 201,
-                "content-type": "text/json",
-                "message": "Jogo criado com sucesso",
-                "game": game
-            });
-        else
-            return response.json({
-                "status": 100,
-                "content-type": "text/json",
-                "message": "Informações de jogo incorrentas! O jogo deve ter a seguinte estrutura:\n{title: string, \nageClassification: string, \ndescription: string, yearSell: number}"
-        });
-        // try {
-        //     console.log(game);
-            
-            
-        //     if(isValidGame(game)){
-        //        return response.status(201).json({
-        //             "status": 201,
-        //             "content-type": "text/json",
-        //             "message": "Jogo criado com sucesso",
-        //             "game": game
-        //         });
-        //     }else{
-        //         return response.status(100).json({
-        //             "status": 100,
-        //             "content-type": "text/json",
-        //             "message": "Informações de jogo incorrentas! O jogo deve ter a seguinte estrutura:\n"+
-        //                         "{title: string, \nageClassification: string, \ndescription: string, yearSell: number}"
-        //         });
-        //     }
-        // } catch (error) {            
-        //    return response.status(100).json({
-        //         "status": 100,
-        //         "content-type": "text/json",
-        //         "message": "Informações de jogo incorrentas! O jogo deve ter a seguinte estrutura:\n"+
-        //                     "{title: string, \nageClassification: string, \ndescription: string, yearSell: number}"
-        //     });
-        // }
+        const bodyRequest = request.body as body;
         
+        // if(isValidGame(bodyRequest)){
+            const { title, ageClassification, description, yearSold } = bodyRequest;
+            const types = bodyRequest.type.map(t=>({type: t}));
+            
+            try {
+                const game = await prisma.game.create({
+                    data: {
+                        title,
+                        ageClassification,
+                        description,
+                        yearSold,
+                        genders: {
+                            createMany: {
+                                skipDuplicates: true,
+                                data: types
+                            }
+                        }
+                    }
+                });
+                
+                response.status(201).json({
+                    "status": 201,
+                    "content-type": "text/json",
+                    "message": "Jogo criado com sucesso",
+                    "game": game
+                });
+            } catch (error) {
+                const err = error as PrismaClientKnownRequestError;
+                const meta = err.meta;   
+                
+                response.status(403).json({
+                    "status": 403,
+                    "content-type": "text/json",
+                    "message": "Informações de jogo incorrentas! O jogo deve ter a "
+                        +"seguinte estrutura:{title: string, ageClassification: string, "
+                        +"description: string, yearSold: number,"
+                        +"type: array}",
+                    "erro": meta,
+                    "corrigir": "posterior"
+                });        
+            }
+        // }else{
+        // }
     });
     
     // Retorna todos os jogos
     route.get("/", async (request, response)=> {
         const games = (await prisma.game.findMany({
-            include: {
-                screenshoots:{
-                    take: 1,
+            skip: 0,
+            take: 10,
+            select: {
+                id: true,
+                title: true,
+                yearSold: true,
+                updatedAt: true,
+                description: true,
+                genders: {
                     select: {
-                        image_path: true
-                    },
-                    where: {
-                        cover: true
+                        type: true,
+                    }
+                },
+                _count: {
+                    select: {
+                        comments: true
                     }
                 }
-            },
-            skip: 0,
-            take: 10
+            }
         }));
     
         response.status(200).send({
@@ -86,14 +100,15 @@ function GameRouters(){
     // Retorna um único jogo representado pelo ID
     route.get("/:id", async (request, response)=> {
         const game = await prisma.game.findFirst({
-            include: {
-                screenshoots: {
-                    take: 1,
+            select:{
+                id: true,
+                title: true,
+                yearSold: true,
+                updatedAt: true,
+                description: true,
+                _count: {
                     select: {
-                        image_path: true
-                    },
-                    where: {
-                        cover: true
+                        comments: true
                     }
                 }
             },
@@ -112,7 +127,7 @@ function GameRouters(){
         response.status(404).send({
             "content-type": "text/json",
             "status": 404,
-            "error_message": "Não foi encontrado nenhum jogo com esta identificação"
+            "error_message": "Não foi encontrado nenhum jogo com esta identificação "+request.params.id
         });
     });
 
@@ -144,14 +159,14 @@ function GameRouters(){
 
 // Valida jogo
 function isValidGame(game: any) {
-    return true;
-    const empty = game == undefined ||
-                  game == null ||
+    const empty = isNull(game) ||
                   isEmpty(game.title) || 
                   isEmpty(game.ageClassification) ||
-                  isEmpty(game.description) //|| 
-                //   game.yearSold < 1990;
-    return !empty;
+                  isEmpty(game.description) ||
+                  !Number.isInteger(game.yearSold) ||
+                  isEmpty(game.type);
+            
+    return true;
 }
 
 
