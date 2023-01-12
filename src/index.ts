@@ -1,12 +1,18 @@
 import Express from "express";
 import { PrismaClient } from "@prisma/client";
+import { urlencoded } from "body-parser"; 
+import { config } from "dotenv";
 import GameRouters from "./routes/Games";
 
 const app = Express();
+app.use(urlencoded({extended: false, type: "text/json"}));
+const dotenv = config({ path: "./.env" });
+if(dotenv.error) console.error(dotenv.error?.stack);
+
 const prisma = new PrismaClient();
 
 // Jogos
-app.use("/games", GameRouters(app));
+app.use("/games", GameRouters());
 // app.get("/games", async (request, response)=> {
 //     const games = (await prisma.game.findMany({
 //         include: {
@@ -104,6 +110,6 @@ app.get("/games/:gameId/comments/:commentId/responses", (request, response)=>{
 
 });
 
-app.listen(3024, ()=>{
-    console.log("Online")
+app.listen(process.env.PORT, ()=>{
+    console.log(`Servidor online⚡\nAcesse: http://localhost:${process.env.PORT}/games`)
 });
