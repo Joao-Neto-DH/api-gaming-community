@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { Comment, Game, PrismaClient } from "@prisma/client";
+import { Game, PrismaClient } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { host } from "../utils/host";
 
@@ -86,7 +86,8 @@ function GameRouters(){
                 },
                 _count: {
                     select: {
-                        comments: true
+                        comments: true,
+                        likes: true
                     }
                 }
             },
@@ -99,7 +100,8 @@ function GameRouters(){
             const { genre, ...rest } = game;
             const data = {
                 "url": `${host(request)}/games/${game.id}`,
-                "comments": `${host(request)}/games/${game.id}/comments`,
+                "comments_url": `${host(request)}/games/${game.id}/comments`,
+                "like_url": `${host(request)}/games/${game.id}/like`,
                 ...rest,
                 "genre": genre.map(genre=>genre.type)
             }
@@ -127,7 +129,8 @@ function GameRouters(){
                 genre: true,
                 _count: {
                     select: {
-                        comments: true
+                        comments: true,
+                        likes: true
                     }
                 }
             },
@@ -141,7 +144,8 @@ function GameRouters(){
             const { genre, ...rest } = game;
             const data = {
                 "url": `${host(request)}/games/${game.id}`,
-                "comments": `${host(request)}/games/${game.id}/comments`,
+                "comments_url": `${host(request)}/games/${game.id}/comments`,
+                "like_url": `${host(request)}/games/${game.id}/like`,
                 ...rest,
                 "genre": genre.map(genre=>genre.type)
             }

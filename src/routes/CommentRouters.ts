@@ -1,8 +1,8 @@
 import { PrismaClient, Comment } from "@prisma/client";
-import Express from "express";
+import { Router } from "express";
 
 function CommentRouters() {
-    const route = Express.Router({caseSensitive: false});
+    const route = Router({caseSensitive: false});
     const prisma = new PrismaClient();
 
     route.post("/:id/comments", async (request, response)=>{
@@ -80,7 +80,7 @@ function CommentRouters() {
         }
     });
 
-    // Apagar comentário
+    // Apagar comentário de um jogo
     route.delete("/:gameId/comments/:commentId/delete", async (request, response)=>{
         try {
             const comment = await prisma.comment.delete({

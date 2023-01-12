@@ -3,6 +3,7 @@ import { json } from "body-parser";
 import { config } from "dotenv";
 import GameRouters from "./routes/GameRouters";
 import CommentRouters from "./routes/CommentRouters";
+import LikesRouters from "./routes/LikesRouters";
 
 const app = Express();
 app.use(json({type: "application/json"}));
@@ -16,6 +17,9 @@ app.use("/games", GameRouters());
 
 // Comentários
 app.use("/games", CommentRouters());
+
+// Reacção
+app.use("/games", LikesRouters());
 
 // app.get("/games/:gameId/comments/:commentId/responses", (request, response)=>{
 //     response.send({
