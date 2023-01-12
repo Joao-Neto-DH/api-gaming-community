@@ -14,7 +14,6 @@ function GameRouters(){
     const route = Router({ caseSensitive: false });
     const prisma = new PrismaClient();
 
-    //  Rotas de criação
     // Cria um jogo
     route.post("/", async (request, response)=>{
         const bodyRequest = request.body as bodyGame;
@@ -66,76 +65,6 @@ function GameRouters(){
         }
     });
 
-    route.post("/:id/comments", async (request, response)=>{
-        try {
-            const body = request.body as Comment;
-            const comment = await prisma.comment.create({
-                data: {
-                    description: body.description,
-                    userId: body.userId,
-                    gameId: request.params.id,
-                },
-                select: {
-                    description: true,
-                    User: {
-                        select: {
-                            name: true
-                        }
-                    }
-                }
-            });
-
-            response.status(200).send({
-                "content-type": "text/json",
-                "status": 200,
-                "comment": comment
-            });
-        } catch (error) {
-            response.status(412).send({
-                "content-type": "text/json",
-                "status": 412,
-                "error": error
-            });
-        }
-    });
-
-    route.get("/:id/comments", async (request, response)=>{
-        try {
-            const comments = await prisma.game.findMany({
-                select: {
-                    comments: {
-                        select: {
-                            id: true,
-                            description: true,
-                            updatedAt: true,
-                            User: {
-                                select: {
-                                    name: true,
-                                }
-                            }
-                        }
-                    }
-                },
-                where: {
-                    id: request.params.id
-                }
-            });
-
-            response.status(200).send({
-                "content-type": "text/json",
-                "status": 200,
-                "datas": comments
-            });
-        } catch (error) {
-            response.status(404).send({
-                "content-type": "text/json",
-                "status": 404,
-                "error": error
-            });
-        }
-    });
-
-    
     // Retorna todos os jogos
     route.get("/", async (request, response)=> {
         const bodyGame = request.body as bodyGamePage;
@@ -170,6 +99,7 @@ function GameRouters(){
             const { genre, ...rest } = game;
             const data = {
                 "url": `${host(request)}/games/${game.id}`,
+                "comments": `${host(request)}/games/${game.id}/comments`,
                 ...rest,
                 "genre": genre.map(genre=>genre.type)
             }
@@ -211,6 +141,7 @@ function GameRouters(){
             const { genre, ...rest } = game;
             const data = {
                 "url": `${host(request)}/games/${game.id}`,
+                "comments": `${host(request)}/games/${game.id}/comments`,
                 ...rest,
                 "genre": genre.map(genre=>genre.type)
             }
