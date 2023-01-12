@@ -3,6 +3,7 @@ import { Game, PrismaClient } from "@prisma/client";
 import { isEmpty } from "../utils/strings";
 import isNull from "../utils/isNull";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { host } from "../utils/host";
 
 type bodyGame = Game & {
     type: string[]
@@ -19,9 +20,10 @@ function GameRouters(){
     route.post("/", async (request, response)=>{
         const bodyRequest = request.body as bodyGame;
         const { title, ageClassification, description, yearSold } = bodyRequest;
-        const types = bodyRequest.type.map(t=>({type: t}));
+        const types = bodyRequest.type.map(t=>({type: t.trim()}));
         
         try {
+            if(!types.length) throw new Error("O jogo deve ter pelo menos uma categoria/tipo");
             const game = await prisma.game.create({
                 data: {
                     title,
@@ -41,20 +43,26 @@ function GameRouters(){
                 "status": 201,
                 "content-type": "text/json",
                 "message": "Jogo criado com sucesso",
+                "url": `${host(request)}/games/${game.id}`,
                 "game": game
             });
         } catch (error) {
-            const err = error as PrismaClientKnownRequestError;
-            const meta = err.meta;   
+            let errMessage: string;
+            
+            if (error instanceof PrismaClientKnownRequestError) {
+                errMessage = error.code;
+            } else {
+                errMessage = (error as Error).message;
+            }
             
             response.status(403).json({
                 "status": 403,
                 "content-type": "text/json",
-                "message": "Informações de jogo incorrentas! O jogo deve ter a "
+                "error_message": errMessage,
+                "description": "Informações de jogo incorrentas! O jogo deve ter a "
                     +"seguinte estrutura:{title: string, ageClassification: string, "
                     +"description: string, yearSold: number,"
                     +"type: array}",
-                "erro": meta,
                 "corrigir": "posterior"
             });        
         }
@@ -93,7 +101,7 @@ function GameRouters(){
         const datas = games.map( game => {
             const { genre, ...rest } = game;
             const data = {
-                "link": `/games/${game.id}`,
+                "url": `${host(request)}/games/${game.id}`,
                 ...rest,
                 "genre": genre.map(genre=>genre.type)
             }
@@ -134,7 +142,7 @@ function GameRouters(){
             
             const { genre, ...rest } = game;
             const data = {
-                "link": `/games/${game.id}`,
+                "url": `${host(request)}/games/${game.id}`,
                 ...rest,
                 "genre": genre.map(genre=>genre.type)
             }
@@ -178,6 +186,7 @@ function GameRouters(){
 
     return route;
 }
+
 
 // Valida jogo
 function isValidGame(game: any) {
