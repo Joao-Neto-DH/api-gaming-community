@@ -11,10 +11,10 @@ function GameRouters(){
     route.get("/", getGames);
     
     // Retorna um único jogo representado pelo ID
-    route.get("/:id", getGame);
+    route.get("/:gameId", getGame);
 
     // Apaga um jogo
-    route.delete("/:id/delete", deleteGame);
+    route.delete("/:gameId/delete", deleteGame);
 
     return route;
 }

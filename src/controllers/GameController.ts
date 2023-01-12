@@ -126,7 +126,7 @@ const getGame = async (request: Request, response: Response) => {
             }
         },
         where: {
-            id: request.params.id
+            id: request.params.gameId
         }
     });
 
@@ -151,7 +151,7 @@ const getGame = async (request: Request, response: Response) => {
     response.status(404).send({
         "content-type": "text/json",
         "status": 404,
-        "error_message": "Não foi encontrado nenhum jogo com a identificação "+request.params.id
+        "error_message": "Não foi encontrado nenhum jogo com a identificação "+request.params.gameId
     });
 };
 
@@ -159,7 +159,7 @@ const deleteGame = async (request: Request, response: Response)=>{
     try {
         const game = await prisma.game.delete({
             where: {
-                id: request.params.id
+                id: request.params.gameId
             }
         });
 
@@ -172,7 +172,7 @@ const deleteGame = async (request: Request, response: Response)=>{
         response.status(404).json({
             "status": 404,
             "error_message": "Não foi possível apagar o jogo porque o mesmo não existe!",
-            "game_id": request.params.id
+            "game_id": request.params.gameId
         });
     }
 };
