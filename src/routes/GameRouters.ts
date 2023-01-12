@@ -1,7 +1,5 @@
 import { Router } from "express";
-import { Game, PrismaClient } from "@prisma/client";
-import { isEmpty } from "../utils/strings";
-import isNull from "../utils/isNull";
+import { Comment, Game, PrismaClient } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { host } from "../utils/host";
 
@@ -16,11 +14,12 @@ function GameRouters(){
     const route = Router({ caseSensitive: false });
     const prisma = new PrismaClient();
 
+    //  Rotas de criação
     // Cria um jogo
     route.post("/", async (request, response)=>{
         const bodyRequest = request.body as bodyGame;
         const { title, ageClassification, description, yearSold } = bodyRequest;
-        const types = bodyRequest.type.map(t=>({type: t.trim()}));
+        const types = bodyRequest.type.map(t=>({type: t.trim()})).filter(el=>el.type.length);
         
         try {
             if(!types.length) throw new Error("O jogo deve ter pelo menos uma categoria/tipo");
@@ -55,26 +54,95 @@ function GameRouters(){
                 errMessage = (error as Error).message;
             }
             
-            response.status(403).json({
-                "status": 403,
+            response.status(412).json({
+                "status": 412,
                 "content-type": "text/json",
                 "error_message": errMessage,
                 "description": "Informações de jogo incorrentas! O jogo deve ter a "
                     +"seguinte estrutura:{title: string, ageClassification: string, "
                     +"description: string, yearSold: number,"
-                    +"type: array}",
-                "corrigir": "posterior"
+                    +"type: array}"
             });        
         }
     });
+
+    route.post("/:id/comments", async (request, response)=>{
+        try {
+            const body = request.body as Comment;
+            const comment = await prisma.comment.create({
+                data: {
+                    description: body.description,
+                    userId: body.userId,
+                    gameId: request.params.id,
+                },
+                select: {
+                    description: true,
+                    User: {
+                        select: {
+                            name: true
+                        }
+                    }
+                }
+            });
+
+            response.status(200).send({
+                "content-type": "text/json",
+                "status": 200,
+                "comment": comment
+            });
+        } catch (error) {
+            response.status(412).send({
+                "content-type": "text/json",
+                "status": 412,
+                "error": error
+            });
+        }
+    });
+
+    route.get("/:id/comments", async (request, response)=>{
+        try {
+            const comments = await prisma.game.findMany({
+                select: {
+                    comments: {
+                        select: {
+                            id: true,
+                            description: true,
+                            updatedAt: true,
+                            User: {
+                                select: {
+                                    name: true,
+                                }
+                            }
+                        }
+                    }
+                },
+                where: {
+                    id: request.params.id
+                }
+            });
+
+            response.status(200).send({
+                "content-type": "text/json",
+                "status": 200,
+                "datas": comments
+            });
+        } catch (error) {
+            response.status(404).send({
+                "content-type": "text/json",
+                "status": 404,
+                "error": error
+            });
+        }
+    });
+
     
     // Retorna todos os jogos
     route.get("/", async (request, response)=> {
-        const body = request.body as bodyGamePage;
+        const bodyGame = request.body as bodyGamePage;
         const items = 10;
         
         const games = await prisma.game.findMany({
-            skip: (body.page == undefined || body.page < 1) ? 0 : items * (body.page - 1 ),
+            skip: (bodyGame.page === undefined || bodyGame.page < 1) ? 0 : items * (bodyGame.page - 1 ),
             take: items,
             select: {
                 id: true,
@@ -112,7 +180,7 @@ function GameRouters(){
             "content-type": "text/json",
             "status": 200,
             "count": games.length,
-            "page": body.page,
+            "page": bodyGame.page,
             "datas": datas
         });
     });
@@ -178,7 +246,7 @@ function GameRouters(){
         } catch (error) {
             response.status(404).json({
                 "status": 404,
-                "message": "Não foi possível apagar o jogo porque o mesmo não existe",
+                "message": "Não foi possível apagar o jogo porque o mesmo não existe!",
                 "game_id": request.params.id
             });
         }
@@ -186,19 +254,5 @@ function GameRouters(){
 
     return route;
 }
-
-
-// Valida jogo
-function isValidGame(game: any) {
-    const empty = isNull(game) ||
-                  isEmpty(game.title) || 
-                  isEmpty(game.ageClassification) ||
-                  isEmpty(game.description) ||
-                  !Number.isInteger(game.yearSold) ||
-                  isEmpty(game.type);
-            
-    return true;
-}
-
 
 export default GameRouters;
