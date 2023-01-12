@@ -13,66 +13,6 @@ const prisma = new PrismaClient();
 
 // Jogos
 app.use("/games", GameRouters());
-// app.get("/games", async (request, response)=> {
-//     const games = (await prisma.game.findMany({
-//         include: {
-//             screenshoots:{
-//                 take: 1,
-//                 select: {
-//                     image_path: true
-//                 },
-//                 where: {
-//                     cover: true
-//                 }
-//             }
-//         },
-//         skip: 0,
-//         take: 10
-//     }));
-
-//     response.status(200).json({
-//         "content-type": "text/json",
-//         "status": 200,
-//         "count": games.length,
-//         "page": 1,
-//         "datas": games.flatMap( game => ({
-//             "link": `/games/${game.id}`,
-//             ...game
-//         }) )
-//     });
-// });
-
-// app.get("/games/:id", async (request, response)=> {
-//     const game = await prisma.game.findFirst({
-//         include: {
-//             screenshoots: {
-//                 take: 1,
-//                 select: {
-//                     image_path: true
-//                 },
-//                 where: {
-//                     cover: true
-//                 }
-//             }
-//         },
-//         where: {
-//             id: request.params.id
-//         }
-//     });
-
-//     if(game)
-//         return response.status(200).json({
-//             "content-type": "text/json",
-//             "status": 200,
-//             "game": game
-//         });
-    
-//     response.status(404).send({
-//         "content-type": "text/json",
-//         "status": 404,
-//         "error_message": "Não foi encontrado nenhum jogo com esta identificação"
-//     });
-// });
 
 // Comentários
 app.get("/games/:id/comments", async (request, response)=> {
@@ -92,22 +32,14 @@ app.get("/games/:id/comments", async (request, response)=> {
 });
 
 app.post("/games/:id/comments", async (request, response)=> {
-    // const comments = await prisma.comment.findMany({
-    //     where: {
-    //         gameId: request.params.id
-    //     }
-    // });
-
-    // response.status(200).send({
-    //     "content-type": "text/json",
-    //     "status": 200,
-    //     "game_link": `/games/${request.params.id}`,
-    //     "count": comments.length,
-    //     "comments": comments
-    // });
+    response.send({
+        text: "criação de comentário"
+    });
 });
 app.get("/games/:gameId/comments/:commentId/responses", (request, response)=>{
-
+    response.send({
+        text: "retorna todas as respostas de um comentário"
+    });
 });
 
 app.listen(process.env.PORT, ()=>{

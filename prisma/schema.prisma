@@ -11,14 +11,15 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(uuid())
+  id        String      @id @default(uuid())
   name      String
   gender    String
-  email     String    @unique
+  email     String      @unique
   password  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(now())
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @default(now())
   comments  Comment[]
+  likes     GameLikes[]
 }
 
 model Game {
@@ -31,12 +32,13 @@ model Game {
   updatedAt         DateTime        @default(now())
   comments          Comment[]
   screenshoots      ScreenShoot[]
-  genders           GenderGame[]
+  genre             GenreGame[]
   requirements      Requirement[]
   plataforms        PlataformGame[]
+  likes             GameLikes[]
 }
 
-model GenderGame {
+model GenreGame {
   id        String   @id @default(uuid())
   type      String
   createdAt DateTime @default(now())
@@ -48,6 +50,7 @@ model GenderGame {
 model PlataformGame {
   id        String   @id @default(uuid())
   device    String
+  value     String
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
   Game      Game?    @relation(fields: [gameId], references: [id])
@@ -82,4 +85,15 @@ model Comment {
   userId      String?
   Game        Game?    @relation(fields: [gameId], references: [id])
   gameId      String?
+}
+
+model GameLikes {
+  id        String   @id @default(uuid())
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+  Game      Game?    @relation(fields: [gameId], references: [id])
+  gameId    String?
+  like      Int      @db.TinyInt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 }
