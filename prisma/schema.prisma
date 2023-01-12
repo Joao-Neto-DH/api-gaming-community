@@ -43,8 +43,8 @@ model GenreGame {
   type      String
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
-  Game      Game?    @relation(fields: [gameId], references: [id])
-  gameId    String?
+  Game      Game     @relation(fields: [gameId], references: [id])
+  gameId    String
 }
 
 model PlataformGame {
@@ -53,8 +53,8 @@ model PlataformGame {
   value     String
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
-  Game      Game?    @relation(fields: [gameId], references: [id])
-  gameId    String?
+  Game      Game     @relation(fields: [gameId], references: [id])
+  gameId    String
 }
 
 model ScreenShoot {
@@ -63,8 +63,8 @@ model ScreenShoot {
   cover      Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now())
-  Game       Game?    @relation(fields: [gameId], references: [id])
-  gameId     String?
+  Game       Game     @relation(fields: [gameId], references: [id])
+  gameId     String
 }
 
 model Requirement {
@@ -72,8 +72,8 @@ model Requirement {
   resource  String
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
-  Game      Game?    @relation(fields: [gameId], references: [id])
-  gameId    String?
+  Game      Game     @relation(fields: [gameId], references: [id])
+  gameId    String
 }
 
 model Comment {
@@ -81,18 +81,18 @@ model Comment {
   description String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now())
-  User        User?    @relation(fields: [userId], references: [id])
-  userId      String?
-  Game        Game?    @relation(fields: [gameId], references: [id])
-  gameId      String?
+  User        User     @relation(fields: [userId], references: [id])
+  userId      String
+  Game        Game     @relation(fields: [gameId], references: [id])
+  gameId      String
 }
 
 model GameLikes {
   id        String   @id @default(uuid())
-  User      User?    @relation(fields: [userId], references: [id])
-  userId    String?
-  Game      Game?    @relation(fields: [gameId], references: [id])
-  gameId    String?
+  User      User     @relation(fields: [userId], references: [id])
+  userId    String
+  Game      Game     @relation(fields: [gameId], references: [id])
+  gameId    String
   like      Int      @db.TinyInt
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
