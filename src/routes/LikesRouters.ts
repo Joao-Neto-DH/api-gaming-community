@@ -39,7 +39,7 @@ function LikesRouters() {
             if (exist) {
                 reaction = await prisma.gameLikes.update({
                     data: {
-                        like: body.reaction,
+                        like: body.reaction > 0 ? 1 : -1,
                         gameId: request.params.gameId,
                         userId: body.userId,
                         updatedAt: new Date()
@@ -51,7 +51,7 @@ function LikesRouters() {
             } else {
                 reaction = await prisma.gameLikes.create({
                     data: {
-                        like: body.reaction,
+                        like: body.reaction > 0 ? 1 : -1,
                         gameId: request.params.gameId,
                         userId: body.userId
                     }
