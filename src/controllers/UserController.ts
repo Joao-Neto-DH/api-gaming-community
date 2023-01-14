@@ -2,7 +2,7 @@ import { PrismaClient, User } from "@prisma/client";
 import { Request, Response } from "express";
 import * as bcrypt from "bcrypt";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
-import { sign } from "jsonwebtoken";
+import * as jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
 
@@ -66,15 +66,16 @@ const loginUser = async (request: Request, response: Response)=>{
 
                 if (checked) {
                     const { id, name, email, gender } = user;
-                    const token = sign({
+                    const token = jwt.sign({
                             "user": user.id,
                             "email": user.email,
                             "name": user.name
                         }, process.env.JWT_SECRET || "vp9fS8L45Lljoa",
                         {
-                            algorithm: "HS256",
+                            // algorithm: "HS256",
                             expiresIn: "1h"
-                        });
+                        }
+                    );
 
                     return response.status(200).send({
                         "status": 200,

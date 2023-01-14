@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { createGame, deleteGame, getGame, getGames } from "../controllers/GameController";
+import { checkToken } from "../middlewares/LoginMiddleware";
 
 function GameRouters(){
     const route = Router({ caseSensitive: false });
@@ -8,7 +9,7 @@ function GameRouters(){
     route.post("/", createGame);
 
     // Retorna todos os jogos
-    route.get("/", getGames);
+    route.get("/", checkToken, getGames);
     
     // Retorna um único jogo representado pelo ID
     route.get("/:gameId", getGame);

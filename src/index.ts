@@ -6,6 +6,7 @@ import CommentRouters from "./routes/CommentRouters";
 import LikesRouters from "./routes/LikesRouters";
 import cors from "cors";
 import UserRouters from "./routes/UserRouters";
+import { checkToken } from "./middlewares/LoginMiddleware";
 
 const app = Express();
 app.use(cors());
@@ -22,7 +23,7 @@ app.use("/games", GameRouters());
 app.use("/games", CommentRouters());
 
 // Reacção
-app.use("/games", LikesRouters());
+app.use("/games", checkToken, LikesRouters());
 
 // Usuários
 app.use("/users", UserRouters());
