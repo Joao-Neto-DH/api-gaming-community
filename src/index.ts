@@ -5,6 +5,7 @@ import GameRouters from "./routes/GameRouters";
 import CommentRouters from "./routes/CommentRouters";
 import LikesRouters from "./routes/LikesRouters";
 import cors from "cors";
+import UserRouters from "./routes/UserRouters";
 
 const app = Express();
 app.use(cors());
@@ -22,6 +23,9 @@ app.use("/games", CommentRouters());
 
 // Reacção
 app.use("/games", LikesRouters());
+
+// Usuários
+app.use("/users", UserRouters());
 
 // app.get("/games/:gameId/comments/:commentId/responses", (request, response)=>{
 //     response.send({
