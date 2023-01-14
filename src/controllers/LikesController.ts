@@ -1,37 +1,41 @@
 import { PrismaClient, GameLikes } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { Response, Request } from "express";
 
 type Like = {
-    userId: string,
     reaction: number
 }
 
 const prisma = new PrismaClient();
 
 const reationGame = async (request: Request, response: Response)=>{
-    const body = request.body as Like;
-
-    if(body.reaction === 0){
-        await prisma.gameLikes.deleteMany({
-            where: {
-                AND: {
-                    userId: body.userId,
-                    gameId: request.params.gameId
+    
+    try {
+        const body = request.body as Like;
+    
+        if(body.reaction === 0){
+            await prisma.gameLikes.deleteMany({
+                where: {
+                    AND: {
+                        userId: request.body.user.userId,
+                        gameId: request.params.gameId
+                    }
                 }
+            });
+    
+            return response.status(204).send();
+        }
+    
+        const exist = await prisma.gameLikes.findFirst({
+            where: {
+                gameId: request.params.gameId,
+                userId: request.body.user.userId
+            },
+            select: {
+                id: true
             }
         });
 
-        return response.status(200).send();
-    }
-
-    const exist = await prisma.gameLikes.findFirst({
-        where: {
-            gameId: request.params.gameId,
-            userId: request.body.userId
-        }
-    });
-
-    try {
         let reaction: GameLikes;
 
         if (exist) {
@@ -39,34 +43,58 @@ const reationGame = async (request: Request, response: Response)=>{
                 data: {
                     like: body.reaction > 0 ? 1 : -1,
                     gameId: request.params.gameId,
-                    userId: body.userId,
+                    userId: request.body.user.userId,
                     updatedAt: new Date()
                 },
                 where: {
                     id: exist.id
                 }
             });           
-        } else {
+        } else {            
             reaction = await prisma.gameLikes.create({
                 data: {
                     like: body.reaction > 0 ? 1 : -1,
                     gameId: request.params.gameId,
-                    userId: body.userId
+                    userId: request.body.user.userId
                 }
-            });           
-            
+            });
         }
 
-        response.status(200).send({
+        return response.status(200).send({
             "status": 200,
             "content-type": "text/json",
             "data": {
-                "userId": body.userId,
+                "userId": request.body.user.userId,
                 "reation": reaction.like
             }
         });
-    } catch (error) {
-        response.status(400).send(error)
+    } catch (error) {        
+
+        if(error instanceof PrismaClientKnownRequestError){
+
+            if(error.code === "P1001"){
+                return response.status(503).send({
+                    "status": 503,
+                    "error": error.code,
+                    "error_message": "Falha na conexão com o Banco de Dados",
+                });
+
+            }else{
+                return response.status(412).send({
+                    "status": 412,
+                    "error": error.code,
+                    "error_message": "Permissão negada",
+                    "error_description": "Requesitos insuficientes"
+                });
+            }
+        }
+
+        // console.log(error)
+        return response.status(500).send({
+            "status": 500,
+            "error": "Erro desconhecido",
+            "ss": error
+        });
     }
 };
 

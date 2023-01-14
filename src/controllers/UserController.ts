@@ -67,7 +67,7 @@ const loginUser = async (request: Request, response: Response)=>{
                 if (checked) {
                     const { id, name, email, gender } = user;
                     const token = jwt.sign({
-                            "user": user.id,
+                            "userId": user.id,
                             "email": user.email,
                             "name": user.name
                         }, process.env.JWT_SECRET || "vp9fS8L45Lljoa",
