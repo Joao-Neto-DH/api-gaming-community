@@ -1,7 +1,8 @@
 import { PrismaClient, User } from "@prisma/client";
 import { Request, Response } from "express";
 import * as bcrypt from "bcrypt";
-import { PrismaClientKnownRequestError, PrismaClientValidationError } from "@prisma/client/runtime";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { sign } from "jsonwebtoken";
 
 const prisma = new PrismaClient();
 
@@ -65,6 +66,15 @@ const loginUser = async (request: Request, response: Response)=>{
 
                 if (checked) {
                     const { id, name, email, gender } = user;
+                    const token = sign({
+                            "user": user.id,
+                            "email": user.email,
+                            "name": user.name
+                        }, process.env.JWT_SECRET || "vp9fS8L45Lljoa",
+                        {
+                            algorithm: "HS256",
+                            expiresIn: "1h"
+                        });
 
                     return response.status(200).send({
                         "status": 200,
@@ -75,7 +85,7 @@ const loginUser = async (request: Request, response: Response)=>{
                             email,
                             gender
                         },
-                        "token": "s575x75cx5c7cdsceccwckjj27389dw."
+                        "token": token
                     });
 
                 } else {
