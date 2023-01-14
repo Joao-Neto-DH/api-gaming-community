@@ -4,8 +4,10 @@ import { config } from "dotenv";
 import GameRouters from "./routes/GameRouters";
 import CommentRouters from "./routes/CommentRouters";
 import LikesRouters from "./routes/LikesRouters";
+import cors from "cors";
 
 const app = Express();
+app.use(cors());
 app.use(json({type: "application/json"}));
 
 const dotenv = config({ path: "./.env" });
