@@ -89,11 +89,9 @@ const reationGame = async (request: Request, response: Response)=>{
             }
         }
 
-        // console.log(error)
         return response.status(500).send({
             "status": 500,
-            "error": "Erro desconhecido",
-            "ss": error
+            "error": "Erro desconhecido"
         });
     }
 };

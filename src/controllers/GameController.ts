@@ -14,7 +14,8 @@ const createGame = async (request: Request, response: Response) => {
     const types = bodyRequest.type.map(t=>({type: t.trim()})).filter(el=>el.type.length);
     
     try {
-        if(!types.length) throw new Error("O jogo deve ter pelo menos uma categoria/tipo");
+        if(!types.length) throw new PrismaClientKnownRequestError("O jogo deve ter pelo menos uma categoria/tipo", {code: "CA001", clientVersion: ""});
+
         const game = await prisma.game.create({
             data: {
                 title,
@@ -38,23 +39,32 @@ const createGame = async (request: Request, response: Response) => {
             "game": game
         });
     } catch (error) {
-        let errMessage: string;
-        
-        if (error instanceof PrismaClientKnownRequestError) {
-            errMessage = error.code;
-        } else {
-            errMessage = (error as Error).message;
+
+        if(error instanceof PrismaClientKnownRequestError){
+
+            if(error.code === "P1001"){
+                return response.status(503).send({
+                    "status": 503,
+                    "error": error.code,
+                    "error_message": "Falha na conexão com o Banco de Dados",
+                });
+            }else{
+                return response.status(412).json({
+                    "status": 412,
+                    "error": error.code,
+                    "error_message": error.message,
+                    "error_description": "Informações de jogo incorrentas! O jogo deve ter a "
+                        +"seguinte estrutura:{title: string, ageClassification: string, "
+                        +"description: string, yearSold: number,"
+                        +"type: string[]}"
+                });  
+            }
         }
-        
-        response.status(412).json({
-            "status": 412,
-            "content-type": "text/json",
-            "error_message": errMessage,
-            "description": "Informações de jogo incorrentas! O jogo deve ter a "
-                +"seguinte estrutura:{title: string, ageClassification: string, "
-                +"description: string, yearSold: number,"
-                +"type: array}"
-        });        
+
+        return response.status(500).send({
+            "status": 500,
+            "error": "Erro desconhecido"
+        });      
     }
 };
 
@@ -169,10 +179,27 @@ const deleteGame = async (request: Request, response: Response)=>{
             "game_deleted": game.title
         });
     } catch (error) {
-        response.status(404).json({
-            "status": 404,
-            "error_message": "Não foi possível apagar o jogo porque o mesmo não existe!",
-            "game_id": request.params.gameId
+
+        if(error instanceof PrismaClientKnownRequestError){
+
+            if(error.code === "P1001"){
+                return response.status(503).send({
+                    "status": 503,
+                    "error": error.code,
+                    "error_message": "Falha na conexão com o Banco de Dados",
+                });
+            }else{
+                return response.status(404).json({
+                            "status": 404,
+                            "error_message": "Não foi possível apagar o jogo porque o mesmo não existe!",
+                            "game_id": request.params.gameId
+                        });
+            }
+        }
+
+        return response.status(500).send({
+            "status": 500,
+            "error": "Erro desconhecido"
         });
     }
 };

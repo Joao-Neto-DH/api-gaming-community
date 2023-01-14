@@ -6,16 +6,16 @@ function GameRouters(){
     const route = Router({ caseSensitive: false });
 
     // Cria um jogo
-    route.post("/", createGame);
+    route.post("/", checkToken, createGame);
 
     // Retorna todos os jogos
-    route.get("/", checkToken, getGames);
+    route.get("/", getGames);
     
     // Retorna um único jogo representado pelo ID
     route.get("/:gameId", getGame);
 
     // Apaga um jogo
-    route.delete("/:gameId/delete", deleteGame);
+    route.delete("/:gameId/delete", checkToken, deleteGame);
 
     return route;
 }
