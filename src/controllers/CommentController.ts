@@ -4,12 +4,33 @@ import { Request, Response } from "express";
 
 const prisma = new PrismaClient();
 
+/**
+ * 
+ * POST: Body request type
+ * {
+ *      description: string
+ * }
+ * 
+ * Response type comment created
+ * {
+ *      content-type: string,
+ *      status: number,
+ *      comment: {
+ *          description: string;
+ *          User: {
+ *              name: string;
+ *          }
+ *      }
+ *  }
+ */
 const createCommentByGame = async (request: Request, response: Response) => {
     try {
+        if(!request.body.description.trim().length) throw new PrismaClientKnownRequestError("Descrição não pode estar vazia", {code: "CA002", clientVersion: "4.1.2"});
+        
         const body = request.body as Comment;
         const comment = await prisma.comment.create({
             data: {
-                description: body.description,
+                description: body.description.trim(),
                 userId: request.body.user.userId,
                 gameId: request.params.id,
             },
@@ -54,6 +75,30 @@ const createCommentByGame = async (request: Request, response: Response) => {
     }
 };
 
+/**
+ * GET: Body request type
+ * {}
+ * 
+ * Response type
+ * {
+ *      content-type: string,
+ *      status: number,
+ *      datas: {
+ *              comments:[
+ *                          {
+ *                              id: string;
+ *                              description: string;
+ *                              updatedAt: Date;
+ *                              User: {
+ *                                  name: string;
+ *                          }
+ *                      ],
+ *              _count: {
+ *                  comments: number;
+ *          }
+ *      }
+ *  }
+ */
 const getCommentsByGame = async (request: Request, response: Response) => {
     try {
         const comments = await prisma.game.findMany({
@@ -95,6 +140,17 @@ const getCommentsByGame = async (request: Request, response: Response) => {
     }
 };
 
+/**
+ * GET: Body request type
+ * {}
+ * 
+ * Response type
+ * {
+ *      content-type: string,
+ *      status: number,
+ *      comment_deleted: number
+ *  }
+ */
 const deleCommentOfGame = async (request: Request, response: Response) => {
     try {
         const comment = await prisma.comment.deleteMany({
@@ -128,8 +184,6 @@ const deleCommentOfGame = async (request: Request, response: Response) => {
                 }); 
             }
         }
-        // console.log(error);
-        
 
         return response.status(500).send({
             "status": 500,

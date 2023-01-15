@@ -8,6 +8,41 @@ type bodyGamePage = { page?: number };
 
 const prisma = new PrismaClient();
 
+/**
+ * POST: Body request creation game
+ * {
+ *      title: string,
+ *      ageClassification: string,
+ *      description: string,
+ *      yearSold: number,
+ *      type: string[]
+ *  }
+ * 
+ * Game created successifully response body
+ * {
+ *      status: number,
+ *      content-type: string,
+ *      message: string,
+ *      url: string,
+ *      game: {
+ *         id: string;
+ *         title: string;
+ *         description: string;
+ *         ageClassification: string;
+ *         yearSold: number;
+ *         createdAt: Date;
+ *         updatedAt: Date;
+ *     }
+ *  }
+ * 
+ * Game creation failed response body
+ * {
+ *      status: number,
+ *      error: string,
+ *      error_message: string,
+ *      error_description: string
+ *  }
+ */
 const createGame = async (request: Request, response: Response) => {
     const bodyRequest = request.body as bodyGame;
     const { title, ageClassification, description, yearSold } = bodyRequest;
@@ -68,6 +103,38 @@ const createGame = async (request: Request, response: Response) => {
     }
 };
 
+/**
+ * 
+ * GET: Body request body
+ * {
+ *      page: number | undefined
+ * }
+ * 
+ * Response body
+ * {
+ *      status: number,
+ *      content-type: string,
+ *      count: number,
+ *      page: number,
+ *      datas: [
+ *                  {
+ *                      url: string,
+ *                      comments_url: string,
+ *                      like_url: string,
+ *                      id: string,
+ *                      title: string,
+ *                      yearSold: number,
+ *                      updatedAt: Date,
+ *                      description: string,
+ *                      _count: {
+ *                          comments: number,
+ *                          likes: number
+ *                      },
+ *                      genre: string[]
+ *                  } 
+ *             ]
+ *  }
+ */
 const getGames = async (request: Request, response: Response) => {
     const bodyGame = request.body as bodyGamePage;
     const items = 10;
@@ -119,52 +186,122 @@ const getGames = async (request: Request, response: Response) => {
     });
 };
 
+/**
+ * 
+ * GET: Body request type
+ * {}
+ * 
+ * Game found response type 
+ * { 
+ *   content-type: string,
+ *   status: number,
+ *   game: {
+ *              url: string,
+ *              comments_url: string,
+ *              like_url: string,
+ *              id: string,
+ *              title: string,
+ *              yearSold: number,
+ *              updatedAt: Date,
+ *              description: string,
+ *              _count: {
+ *                  comments: number,
+ *                  likes: number
+ *              },
+ *              genre: string[]
+ *         } 
+ * }
+ * 
+ * Game not found response type
+ * {
+ *      status: number,
+ *      content-type: string,
+ *      error_message: string
+ *  }
+ */
 const getGame = async (request: Request, response: Response) => {
-    const game = await prisma.game.findFirst({
-        select:{
-            id: true,
-            title: true,
-            yearSold: true,
-            updatedAt: true,
-            description: true,
-            genre: true,
-            _count: {
-                select: {
-                    comments: true,
-                    likes: true
+    try{
+        const game = await prisma.game.findFirst({
+            select:{
+                id: true,
+                title: true,
+                yearSold: true,
+                updatedAt: true,
+                description: true,
+                genre: true,
+                _count: {
+                    select: {
+                        comments: true,
+                        likes: true
+                    }
                 }
+            },
+            where: {
+                id: request.params.gameId
             }
-        },
-        where: {
-            id: request.params.gameId
-        }
-    });
+        });
 
-    if(game){
+        if(game){
+            
+            const { genre, ...rest } = game;
+            const data = {
+                "url": `${host(request)}/games/${game.id}`,
+                "comments_url": `${host(request)}/games/${game.id}/comments`,
+                "like_url": `${host(request)}/games/${game.id}/like`,
+                ...rest,
+                "genre": genre.map(genre=>genre.type)
+            }
+
+            return response.status(200).send({
+                "status": 200,
+                "content-type": "text/json",
+                "game": data
+            });
+        }
         
-        const { genre, ...rest } = game;
-        const data = {
-            "url": `${host(request)}/games/${game.id}`,
-            "comments_url": `${host(request)}/games/${game.id}/comments`,
-            "like_url": `${host(request)}/games/${game.id}/like`,
-            ...rest,
-            "genre": genre.map(genre=>genre.type)
+        response.status(404).send({
+            "status": 404,
+            "content-type": "text/json",
+            "error_message": "Não foi encontrado nenhum jogo com a identificação "+request.params.gameId
+        });
+    } catch (error) {
+
+        if(error instanceof PrismaClientKnownRequestError){
+
+            if(error.code === "P1001"){
+                return response.status(503).send({
+                    "status": 503,
+                    "error": error.code,
+                    "error_message": "Falha na conexão com o Banco de Dados",
+                });
+            }else{
+                return response.status(404).json({
+                            "status": 404,
+                            "error_message": "Não foi possível apagar o jogo porque o mesmo não existe!",
+                            "game_id": request.params.gameId
+                        });
+            }
         }
 
-        return response.status(200).send({
-            "content-type": "text/json",
-            "status": 200,
-            "game": data
+        return response.status(500).send({
+            "status": 500,
+            "error": "Erro desconhecido"
         });
     }
-    
-    response.status(404).send({
-        "content-type": "text/json",
-        "status": 404,
-        "error_message": "Não foi encontrado nenhum jogo com a identificação "+request.params.gameId
-    });
 };
 
+/**
+ * 
+ * POST: Body request type
+ * {}
+ * 
+ * Response type
+ * {
+ *      status: number,
+ *      message: string,
+ *      game_deleted: string
+ * }
+ */
 const deleteGame = async (request: Request, response: Response)=>{
     try {
         const game = await prisma.game.delete({

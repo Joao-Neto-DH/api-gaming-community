@@ -5,7 +5,34 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import * as jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
-
+/**
+ * POST: Body request type user creation
+ * {
+ *      name: body.name,
+ *      email: body.email,
+ *      gender: body.gender,
+ *      password: body.password
+ *  }
+ * 
+ * User created response type
+ * {
+ *      status: 201,
+ *      content-type: "text-json",
+ *      user: {
+ *          id,
+ *          name,
+ *          email
+ *      }
+ *  }
+ * 
+ * User creation response type error
+ * {
+ *      status: 412,
+ *      error,
+ *      error_message,
+ *      error_description,
+ *  }
+ */
 const createUser = async (request: Request, response: Response)=>{
     await tryCatchHandler(
         request, 
@@ -45,6 +72,35 @@ const createUser = async (request: Request, response: Response)=>{
     );
 }
 
+/**
+ * 
+ * POST: Body request type user login
+ * {
+ *      email,
+ *      password
+ * }
+ * 
+ * User signin response type
+ * {
+ *      status: 200,
+ *      content-type: text-json,
+ *      user: {
+ *          id,
+ *          name,
+ *          email,
+ *          gender
+ *      },
+ *      token
+ *  }
+ * 
+ * User signin fail response type
+ * {
+ *      status: 412,
+ *      content-type: "text/json",
+ *      user: {},
+ *      message
+ *  }
+ */
 const loginUser = async (request: Request, response: Response)=>{
     await tryCatchHandler(
         request, 

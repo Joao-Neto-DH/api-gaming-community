@@ -8,6 +8,28 @@ type Like = {
 
 const prisma = new PrismaClient();
 
+/**
+ * 
+ * POST: Body request type
+ * {
+ *      reaction: number
+ * }
+ *  reaction accepted values are:
+ *      0 - remove reaction
+ *      0 > good reaction
+ *      0 < bad reaction
+ * 
+ * Reaction response type
+ * {
+ *      status: number,
+ *      content-type: string,
+ *      data: {
+ *          userId: string,
+ *          gameId: string,
+ *          reation: number
+ *      }
+ *  }
+ */
 const reationGame = async (request: Request, response: Response)=>{
     
     try {
@@ -65,6 +87,7 @@ const reationGame = async (request: Request, response: Response)=>{
             "content-type": "text/json",
             "data": {
                 "userId": request.body.user.userId,
+                "gameId": reaction.gameId,
                 "reation": reaction.like
             }
         });

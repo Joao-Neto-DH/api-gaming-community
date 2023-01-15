@@ -1,6 +1,16 @@
 import { NextFunction, Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
 
+/**
+ * User not authenticated response type
+ * {
+ *      status: number,
+ *      content-type: string,
+ *      error: string,
+ *      error_message: string
+ *  }
+ *
+ */
 const checkToken = (request: Request, response: Response, next: NextFunction)=>{    
     try {
         const user = jwt.verify(
