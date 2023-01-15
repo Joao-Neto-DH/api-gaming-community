@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
 
-const checkToken = (request: Request, response: Response, next: NextFunction)=>{
+const checkToken = (request: Request, response: Response, next: NextFunction)=>{    
     try {
         const user = jwt.verify(
-            request.body.token, 
+            request.headers.authorization?.split(" ")[1] || "", 
             process.env.JWT_SECRET || "vp9fS8L45Lljoa",
         );
 

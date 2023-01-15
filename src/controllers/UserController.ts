@@ -12,6 +12,8 @@ const createUser = async (request: Request, response: Response)=>{
         response, 
         async ()=>{
             const body = request.body as User;
+            console.log(body.password);
+            
             body.password = await hidePassword(body.password);
 
             const user = await prisma.user.create({
@@ -144,7 +146,7 @@ async function tryCatchHandler(request: Request, response: Response, callBackTab
 }
 
 async function hidePassword(password: string) {
-    return await bcrypt.hash("amor", 10);
+    return await bcrypt.hash(password, 10);
 }
 
 async function checkPassword(userPassword: string,hashPassword:string) {

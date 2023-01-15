@@ -1,8 +1,8 @@
-import { PrismaClient, Comment, User } from "@prisma/client";
+import { PrismaClient, Comment } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { Request, Response } from "express";
 
-const prisma = new PrismaClient({log: ["query"]});
+const prisma = new PrismaClient();
 
 const createCommentByGame = async (request: Request, response: Response) => {
     try {
