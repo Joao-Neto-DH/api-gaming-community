@@ -1,5 +1,5 @@
 import Express from "express";
-import { json } from "body-parser"; 
+import { json } from "body-parser";
 import { config } from "dotenv";
 import GameRouters from "./routes/GameRouters";
 import CommentRouters from "./routes/CommentRouters";
@@ -10,11 +10,10 @@ import { checkToken } from "./middlewares/LoginMiddleware";
 
 const app = Express();
 app.use(cors());
-app.use(json({type: "application/json"}));
+app.use(json({ type: "application/json" }));
 
-const dotenv = config({ path: "./.env" });
-if(dotenv.error) console.error(dotenv.error?.stack);
-
+const dotenv = config({ path: ".env" });
+if (dotenv.error) console.error(dotenv.error?.stack);
 
 // Jogos
 app.use("/games", GameRouters());
@@ -34,6 +33,8 @@ app.use("/users", UserRouters());
 //     });
 // });
 
-app.listen(process.env.PORT, ()=>{
-    console.log(`Servidor online⚡\nAcesse: http://localhost:${process.env.PORT}/games`)
+app.listen(process.env.PORT, () => {
+  console.log(
+    `Servidor online⚡\nAcesse: http://localhost:${process.env.PORT}/games`
+  );
 });
