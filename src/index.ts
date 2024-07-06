@@ -12,7 +12,7 @@ const app = Express();
 app.use(cors());
 app.use(json({ type: "application/json" }));
 
-const dotenv = config({ path: ".env" });
+const dotenv = config();
 if (dotenv.error) console.error(dotenv.error?.stack);
 
 // Jogos
